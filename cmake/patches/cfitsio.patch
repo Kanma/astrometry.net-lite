@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 28667c1..4c8e7ff 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -9,7 +9,7 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+ 		)
+ ENDIF()
+ 
+-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
++CMAKE_MINIMUM_REQUIRED(VERSION 3.24.0)
+ 
+ # Suppress warning about WIN32 no longer being defined on Cygwin:
+ SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
