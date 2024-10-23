@@ -193,22 +193,46 @@ int main(int argc, char** argv)
     std::cout << "Loading the image '" << argv[1] << "'..." << std::endl;
 
     int imageWidth, imageHeight, imageChannels;
-    unsigned char* pixels = stbi_load(argv[1], &imageWidth, &imageHeight, &imageChannels, 1);
+    std::vector<float> image;
 
-    // Convert the image to floating-point
-    std::vector<float> image(imageWidth * imageHeight);
-
-    unsigned char* src = pixels;
-    float* dst = image.data();
-
-    for (int i = 0; i < imageWidth * imageHeight; ++i)
+    if (stbi_is_16_bit(argv[1]))
     {
-        *dst = float(*src);
-        ++src;
-        ++dst;
-    }
+        unsigned short* pixels = stbi_load_16(argv[1], &imageWidth, &imageHeight, &imageChannels, 1);
 
-    stbi_image_free(pixels);
+        // Convert the image to floating-point (0-255)
+        image.resize(imageWidth * imageHeight);
+
+        unsigned short* src = pixels;
+        float* dst = image.data();
+
+        for (int i = 0; i < imageWidth * imageHeight; ++i)
+        {
+            *dst = float(*src) / 257.0f;
+            ++src;
+            ++dst;
+        }
+
+        stbi_image_free(pixels);
+    }
+    else
+    {
+        unsigned char* pixels = stbi_load(argv[1], &imageWidth, &imageHeight, &imageChannels, 1);
+
+        // Convert the image to floating-point (0-255)
+        image.resize(imageWidth * imageHeight);
+
+        unsigned char* src = pixels;
+        float* dst = image.data();
+
+        for (int i = 0; i < imageWidth * imageHeight; ++i)
+        {
+            *dst = float(*src);
+            ++src;
+            ++dst;
+        }
+
+        stbi_image_free(pixels);
+    }
 
 
     // Detect stars
