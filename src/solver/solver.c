@@ -8,8 +8,11 @@
 #include <math.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <stdarg.h>
+
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
 
 #include "os-features.h"
 #include "ioutils.h"
@@ -18,7 +21,6 @@
 #include "solver.h"
 #include "verify.h"
 #include "tic.h"
-#include "solvedfile.h"
 #include "fit-wcs.h"
 #include "sip-utils.h"
 #include "keywords.h"
@@ -795,8 +797,8 @@ void solver_run(solver_t* solver) {
 
     num_indexes = pl_size(solver->indexes);
     {
-        double minAB2s[num_indexes];
-        double maxAB2s[num_indexes];
+        double* minAB2s = malloc(num_indexes * sizeof(double));
+        double* maxAB2s = malloc(num_indexes * sizeof(double));
         solver->minminAB2 = LARGE_VAL;
         solver->maxmaxAB2 = -LARGE_VAL;
         for (i = 0; i < num_indexes; i++) {
@@ -1040,6 +1042,9 @@ void solver_run(solver_t* solver) {
             free(pq->xy);
         }
         free(pquads);
+
+    free(minAB2s);
+    free(maxAB2s);
     }
 }
 
@@ -1269,12 +1274,12 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field_xy,
     //    [x_A,y_A, x_B,y_B, x_C,y_C, ...]
     int jj, thisquadno;
     MatchObj mo;
-    unsigned int star[dimquads];
+    unsigned int* star = malloc(dimquads * sizeof(unsigned int));
+    double* starxyz = malloc(dimquads * 3 * sizeof(starxyz));
 
     assert(krez);
 
     for (jj = 0; jj < krez->nres; jj++) {
-        double starxyz[dimquads*3];
         double scale;
         double arcsecperpix;
         tan_t wcs;
@@ -1365,8 +1370,11 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field_xy,
         }
 
         if (unlikely(solver->quit_now))
-            return;
+            break;
     }
+
+    free(star);
+    free(starxyz);
 }
 
 void solver_inject_match(solver_t* solver, MatchObj* mo, sip_t* sip) {

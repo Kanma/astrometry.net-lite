@@ -15,6 +15,8 @@
 # include <sys/endian.h>
 #elif __sun
 # include <sys/isa_defs.h>
+#elif _WIN32
+  // Nothing to include
 #else
 # include <endian.h>
 #endif

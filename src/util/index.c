@@ -70,26 +70,10 @@ char* index_get_quad_filename(const char* indexname) {
     return get_filename(indexname);
 }
 
-char* index_get_qidx_filename(const char* indexname) {
-    char* indexfn;
-    char* qidxfn = NULL;
-    if (!index_is_file_index(indexname))
-        return NULL;
-    indexfn = get_filename(indexname);
-    if (ends_with(indexfn, ".fits")) {
-        asprintf_safe(&qidxfn, "%.*s.qidx.fits", (int)(strlen(indexfn)-5), indexfn);
-    } else {
-        asprintf_safe(&qidxfn, "%s.qidx.fits", indexfn);
-    }
-    free(indexfn);
-    return qidxfn;
-}
-
 static int fits_is_fits(const char* filename)
 {
     #define FITS_MAGIC "SIMPLE"
-
-    const int FITS_MAGIC_SIZE = 6;
+    #define FITS_MAGIC_SIZE 6
 
     FILE* fp;
     char magic[FITS_MAGIC_SIZE + 1];

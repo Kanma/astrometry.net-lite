@@ -13,7 +13,6 @@ set(SRC_FILES
     libkd/kdint_lll.c
 
     solver/quad-utils.c
-    solver/solvedfile.c
     solver/solver.c
     solver/tweak2.c
     solver/verify.c
@@ -72,3 +71,7 @@ target_link_libraries(astrometry-net-lite
 )
 
 target_compile_options(astrometry-net-lite PRIVATE "-w")
+
+if (WIN32)
+    target_compile_definitions(astrometry-net-lite PRIVATE _USE_MATH_DEFINES)
+endif()

@@ -100,7 +100,7 @@ int fits_check_endian(const fits_hdu_t* header) {
 
     uint32_t endian = ENDIAN_DETECTOR;
     unsigned char* cptr = (unsigned char*) &endian;
-    sprintf(localstr, "%02x:%02x:%02x:%02x", (uint)cptr[0], (uint)cptr[1], (uint)cptr[2], (uint)cptr[3]);
+    sprintf(localstr, "%02x:%02x:%02x:%02x", (uint32_t)cptr[0], (uint32_t)cptr[1], (uint32_t)cptr[2], (uint32_t)cptr[3]);
 
     if (strcmp(filestr, localstr)) {
         fprintf(stderr, "File was written with endianness %s, this machine has endianness %s.\n", filestr, localstr);

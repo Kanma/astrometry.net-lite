@@ -22,6 +22,8 @@
 
 #if DEBUGVERIFY
 #define debug2(args...) logdebug(args)
+#elif defined(_WIN32)
+#define debug2(args)
 #else
 #define debug2(args...)
 #endif

@@ -1073,20 +1073,6 @@ ptrdiff_t sl_remove_string(sl* list, const char* string) {
     return pl_remove_value(list, string);
 }
 
-char* sl_remove_string_bycaseval(sl* list, const char* string) {
-    size_t N = sl_size(list);
-    size_t i;
-    for (i=0; i<N; i++) {
-        char* str = sl_get(list, i);
-        if (strcasecmp(str, string) == 0) {
-            char* s = sl_get(list, i);
-            sl_remove(list, i);
-            return s;
-        }
-    }
-    return NULL;
-}
-
 ptrdiff_t sl_remove_string_byval(sl* list, const char* string) {
     size_t N = sl_size(list);
     size_t i;

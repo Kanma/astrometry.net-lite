@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <regex.h>
 
 #include "os-features.h"
 #include "keywords.h"
@@ -71,107 +70,6 @@ void radecrange2xyzrange(double ralo, double declo, double rahi, double dechi,
         uyhi = -1.0;
     minxyz[1] = MIN(uylo * minmult, uylo * maxmult);
     maxxyz[1] = MAX(uyhi * minmult, uyhi * maxmult);
-}
-
-
-static int parse_hms_string(const char* str,
-                            int* sign, int* term1, int* term2, double* term3) {
-    anbool matched;
-    regmatch_t matches[6];
-    int nmatches = 6;
-    regex_t re;
-    regmatch_t* m;
-    const char* s;
-
-    const char* restr = 
-        "^([+-])?([[:digit:]]{1,2}):"
-        "([[:digit:]]{1,2}):"
-        "([[:digit:]]*(\\.[[:digit:]]*)?)$";
-
-    if (!str)
-        return 1;
-
-    if (regcomp(&re, restr, REG_EXTENDED)) {
-        ERROR("Failed to compile H:M:S regex \"%s\"", restr);
-        return -1;
-    }
-    matched = (regexec(&re, str, nmatches, matches, 0) == 0);
-    regfree(&re);
-    if (!matched)
-        return 1;
-
-    // sign
-    m = matches + 1;
-    s = str + m->rm_so;
-    if (m->rm_so == -1 || s[0] == '+')
-        *sign = 1;
-    else
-        *sign = -1;
-    // hrs / deg
-    m = matches + 2;
-    s = str + m->rm_so;
-    if (s[0] == '0')
-        s++;
-    *term1 = atoi(s);
-    // Min
-    m = matches + 3;
-    s = str + m->rm_so;
-    if (s[0] == '0')
-        s++;
-    *term2 = atoi(s);
-    // Sec
-    m = matches + 4;
-    s = str + m->rm_so;
-    *term3 = atof(s);
-    return 0;
-}
-
-double atora(const char* str) {
-    char* eptr;
-    double ra;
-    int sgn, hr, min;
-    double sec;
-    int rtn;
-
-    if (!str) {
-        //ERROR("Null string to atora()");
-        return LARGE_VAL;
-    }
-    rtn = parse_hms_string(str, &sgn, &hr, &min, &sec);
-    if (rtn == -1) {
-        ERROR("Failed to run regex");
-        return LARGE_VAL;
-    }
-    if (rtn == 0)
-        return sgn * hms2ra(hr, min, sec);
-
-    ra = strtod(str, &eptr);
-    if (eptr == str)
-        // no conversion
-        return LARGE_VAL;
-    return ra;
-}
-
-double atodec(const char* str) {
-    char* eptr;
-    double dec;
-    int sgn, deg, min;
-    double sec;
-    int rtn;
-
-    rtn = parse_hms_string(str, &sgn, &deg, &min, &sec);
-    if (rtn == -1) {
-        ERROR("Failed to run regex");
-        return LARGE_VAL;
-    }
-    if (rtn == 0)
-        return dms2dec(sgn, deg, min, sec);
-
-    dec = strtod(str, &eptr);
-    if (eptr == str)
-        // no conversion
-        return LARGE_VAL;
-    return dec;
 }
 
 double mag2flux(double mag) {

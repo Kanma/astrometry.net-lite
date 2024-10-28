@@ -220,12 +220,6 @@ char* error_get_errs(err_t* e, const char* separator) {
     return rtn;
 }
 
-void errors_regex_error(int errcode, const regex_t* re) {
-    char str[256];
-    regerror(errcode, re, str, sizeof(str));
-    error_report(errors_get_state(), "regex", -1, NULL, "%s", str);
-}
-
 void error_stack_add_entryv(err_t* e, const char* file, int line, const char* func, const char* format, va_list va) {
     char* str;
     if (vasprintf(&str, format, va) == -1) {

@@ -5,10 +5,13 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
 
 #include "permutedsort.h"
 #include "os-features.h"

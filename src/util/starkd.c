@@ -108,7 +108,6 @@ fits_hdu_t* startree_header(const startree_t* s) {
 }
 
 startree_t* startree_open_fits(const char* filename, fitsfile* fits) {
-    struct timeval tv1, tv2;
     startree_t* s;
     bl* chunks;
     int i;
@@ -119,27 +118,17 @@ startree_t* startree_open_fits(const char* filename, fitsfile* fits) {
     if (!s)
         return NULL;
 
-    gettimeofday(&tv1, NULL);
-
     io = fits_open_fits(filename, fits);
 
-    gettimeofday(&tv2, NULL);
-    debug("kdtree_fits_open() took %g ms\n", millis_between(&tv1, &tv2));
     if (!io) {
         ERROR("Failed to open FITS file \"%s\"", filename);
         goto bailout;
     }
 
-    gettimeofday(&tv1, NULL);
     if (!kdtree_fits_contains_tree(io, treename))
         treename = NULL;
-    gettimeofday(&tv2, NULL);
-    debug("kdtree_fits_contains_tree() took %g ms\n", millis_between(&tv1, &tv2));
 
-    gettimeofday(&tv1, NULL);
     s->tree = kdtree_fits_read_tree(io, treename, &s->header);
-    gettimeofday(&tv2, NULL);
-    debug("kdtree_fits_read_tree() took %g ms\n", millis_between(&tv1, &tv2));
     if (!s->tree) {
         ERROR("Failed to read kdtree from file \"%s\"", filename);
         goto bailout;
@@ -154,10 +143,7 @@ startree_t* startree_open_fits(const char* filename, fitsfile* fits) {
         goto bailout;
     }
 
-    gettimeofday(&tv1, NULL);
     fits_read_chunk(io, "sweep", sizeof(uint8_t), &s->tree->ndata, &s->sweep);
-    gettimeofday(&tv2, NULL);
-    debug("reading chunks took %g ms\n", millis_between(&tv1, &tv2));
 
     // kdtree_fits_t is a typedef of fitsbin_t
     fits_io_close(io);
@@ -292,7 +278,7 @@ char* startree_get_cut_band(const startree_t* s) {
         return NULL;
 
     for (i=0; i<sizeof(bands) / sizeof(char*); i++) {
-        if (streq(str, bands[i])) {
+        if (strstr(str, bands[i]) == str) {
             return bands[i];
         }
     }

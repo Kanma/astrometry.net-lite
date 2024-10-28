@@ -7,19 +7,16 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <assert.h>
 
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
+
 #include "log.h"
-#include "an-thread.h"
 #include "tic.h"
 
-static int g_thread_specific = 0;
 static log_t g_logger;
-
-void log_set_thread_specific() {
-    g_thread_specific = 1;
-}
 
 static void* logts_init_key(void* user) {
     log_t* l = malloc(sizeof(log_t));
@@ -27,12 +24,8 @@ static void* logts_init_key(void* user) {
         memcpy(l, user, sizeof(log_t));
     return l;
 }
-#define TSNAME logts
-#include "thread-specific.inc"
 
 static log_t* get_logger() {
-    if (g_thread_specific)
-        return logts_get_key(&g_logger);
     return &g_logger;
 }
 
@@ -83,14 +76,11 @@ void log_free(log_t* log) {
     free(log);
 }
 
-AN_THREAD_DECLARE_STATIC_MUTEX(loglock);
-
 static void loglvl(const log_t* logger, enum log_level level,
                    const char* file, int line, const char* func,
                    const char* format, va_list va) {
     if (level > logger->level)
         return;
-    AN_THREAD_LOCK(loglock);
     if (logger->f) {
         if (logger->timestamp)
             fprintf(logger->f, "[%6i: %.3f] ", (int)getpid(), timenow() - logger->t0);
@@ -101,7 +91,6 @@ static void loglvl(const log_t* logger, enum log_level level,
     if (logger->logfunc) {
         logger->logfunc(logger->baton, level, file, line, func, format, va);
     }
-    AN_THREAD_UNLOCK(loglock);
 }
 
 void log_loglevel(enum log_level level,

@@ -5,11 +5,13 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <math.h>
+
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
 
 #include "os-features.h"
 #include "image2xy.h"

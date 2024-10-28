@@ -64,11 +64,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cfitsio)
 
-
 # Tell cfitsio where to find zlib
 target_include_directories(cfitsio PRIVATE ${zlib_BINARY_DIR} ${zlib_SOURCE_DIR})
 target_link_libraries(cfitsio zlibstatic)
 
+# On Windows: add a definition needed to avoid the inclusion of linux-specific headers
+if (WIN32)
+    target_compile_definitions(cfitsio PRIVATE YY_NO_UNISTD_H)
+endif()
 
 # Disable warnings in our dependencies
 target_compile_options(cfitsio PRIVATE "-w")

@@ -8,7 +8,10 @@
 // Features we use that aren't standard across all supported platforms
 
 // Not POSIX; doesn't exist in Solaris 10
-#include <sys/param.h>
+#ifndef _WIN32
+#  include <sys/param.h>
+#endif
+
 #ifndef MIN
 #define	MIN(a,b) (((a)<(b))?(a):(b))
 #endif

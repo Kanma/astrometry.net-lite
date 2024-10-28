@@ -67,8 +67,8 @@ std::vector<index_t*> loadIndexes(const std::string& folder)
 
         if (dirEntry.path().extension() == ".fits")
         {
-            if (index_is_file_index(dirEntry.path().c_str()))
-                files.push_back(dirEntry.path().c_str());
+            if (index_is_file_index(dirEntry.path().string().c_str()))
+                files.push_back(dirEntry.path().string());
         }
     }
 

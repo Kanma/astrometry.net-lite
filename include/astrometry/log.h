@@ -38,11 +38,6 @@ typedef struct log_t log_t;
  */
 void log_use_function(logfunc_t func, void* baton);
 
-/**
- Make all logging commands thread-specific rather than global.
- */
-void log_set_thread_specific(void);
-
 void log_set_timestamp(anbool b);
 
 /**
@@ -83,16 +78,26 @@ log_t* log_create(const enum log_level level);
  */
 void log_free(log_t* logger);
 
-#define LOG_TEMPLATE(name)                                              \
-    void log_##name(const char* file, int line, const char* func, const char* format, ...) \
-         __attribute__ ((format (printf, 4, 5)));
+#ifndef _WIN32
+#  define LOG_TEMPLATE(name)                                              \
+        void log_##name(const char* file, int line, const char* func, const char* format, ...) \
+            __attribute__ ((format (printf, 4, 5)));
+#else
+#  define LOG_TEMPLATE(name)                                              \
+        void log_##name(const char* file, int line, const char* func, const char* format, ...)
+#endif
+
 LOG_TEMPLATE(logmsg);
 LOG_TEMPLATE(logerr);
 LOG_TEMPLATE(logverb);
 LOG_TEMPLATE(logdebug);
 
-void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...)
-    __attribute__ ((format (printf, 5, 6)));
+#ifndef _WIN32
+    void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...)
+        __attribute__ ((format (printf, 5, 6)));
+#else
+    void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...);
+#endif
 
 
 /**

@@ -9,7 +9,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <regex.h>
 
 #include "astrometry/an-bool.h"
 #include "astrometry/bl.h"
@@ -88,11 +87,6 @@ void errors_start_logging_to_string(void);
  Returns a newly-allocated string which you must free().
  */
 char* errors_stop_logging_to_string(const char* separator);
-
-/*
- Convenience function to report an error from the regex module.
- */
-void errors_regex_error(int errcode, const regex_t* re);
 
 /***    End globals   ***/
 
