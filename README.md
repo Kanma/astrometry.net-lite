@@ -15,6 +15,7 @@ but has the following characteristics:
   ```astrometry.net lite```:
     * ```GSL``` by ```Eigen```
     * ```qfits``` by ```cfitsio```
+  * Works on Linux, MacOS and Windows (tested on Visual Studio 2022)
 
 
 An example program is provided, but you might want to look at how I use this library in
