@@ -68,6 +68,9 @@ FetchContent_MakeAvailable(cfitsio)
 target_include_directories(cfitsio PRIVATE ${zlib_BINARY_DIR} ${zlib_SOURCE_DIR})
 target_link_libraries(cfitsio zlibstatic)
 
+# Compile cfitsio with support for multithreading
+target_compile_definitions(cfitsio PRIVATE "-D_REENTRANT")
+
 # On Windows: add a definition needed to avoid the inclusion of linux-specific headers
 if (WIN32)
     target_compile_definitions(cfitsio PRIVATE YY_NO_UNISTD_H)
