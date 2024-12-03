@@ -211,6 +211,14 @@ kdtree_t* kdtree_fits_read_tree(fits_io_t* io, const char* treename,
 
 int kdtree_fits_close(kdtree_t* kd) {
     if (!kd) return 0;
+
+    FREE(kd->lr);
+    FREE(kd->perm);
+    FREE(kd->bb.any);
+    FREE(kd->split.any);
+    FREE(kd->splitdim);
+    FREE(kd->data.any);
+    FREE(kd->minval);
     FREE(kd->name);
     FREE(kd);
     return 0;

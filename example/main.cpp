@@ -260,10 +260,10 @@ int main(int argc, char** argv)
 
 
     // Plate solving
-    double minWidth = 0.1;
-    double maxWidth = 180.0;
-    // double minWidth = 0.5;
-    // double maxWidth = 2.0;
+    // double minWidth = 0.1;
+    // double maxWidth = 180.0;
+    double minWidth = 0.5;
+    double maxWidth = 2.0;
 
     //--- load the index files
     std::cout << "Loading the index files from '" << argv[2] << "'..." << std::endl;

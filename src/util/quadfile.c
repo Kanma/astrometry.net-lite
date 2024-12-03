@@ -158,6 +158,7 @@ int quadfile_close(quadfile_t* qf) {
     int rtn;
     if (!qf) return 0;
     rtn = fits_io_close(qf->io);
+    free(qf->quadarray);
     free(qf);
     return rtn;
 }

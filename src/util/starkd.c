@@ -170,9 +170,10 @@ int startree_close(startree_t* s) {
         free(s->inverse_perm);
     if (s->header)
         free(s->header);
-    if (s->tree) {
+    if (s->tree)
         kdtree_fits_close(s->tree);
-    }
+    if (s->sweep)
+        free(s->sweep);
     free(s);
     return 0;
 }

@@ -293,7 +293,6 @@ index_t* index_build_from(codetree_t* codekd, quadfile_t* quads, startree_t* sta
 
 index_t* index_load(const char* indexname, int flags, index_t* dest) {
     index_t* allocd = NULL;
-    int status = 0;
 
     if (flags & INDEX_ONLY_LOAD_METADATA)
         logverb("Loading metadata for %s...\n", indexname);
@@ -311,11 +310,6 @@ index_t* index_load(const char* indexname, int flags, index_t* dest) {
         goto bailout;
     }
 
-    fits_open_file(&dest->fits, dest->indexfn, READONLY, &status);
-    if (status != 0) {
-        ERROR("Failed to open FITS file %s", dest->indexfn);
-        goto bailout;
-    }
     if (index_reload(dest))
         goto bailout;
 
@@ -335,9 +329,6 @@ index_t* index_load(const char* indexname, int flags, index_t* dest) {
 
     if (flags & INDEX_ONLY_LOAD_METADATA) {
         index_unload(dest);
-        // If we're using anqfits_t (dest->fits), keep that open for
-        // fast reopening.  anqfits_t doesn't keep a FILE* or anything
-        // open, so that's fine.
     }
     return dest;
 
@@ -348,6 +339,17 @@ index_t* index_load(const char* indexname, int flags, index_t* dest) {
 }
 
 int index_reload(index_t* index) {
+    if (index->fits == NULL)
+    {
+        int status = 0;
+
+        fits_open_file(&index->fits, index->indexfn, READONLY, &status);
+        if (status != 0) {
+            ERROR("Failed to open FITS file %s", index->indexfn);
+            goto bailout;
+        }
+    }
+
     // Read .skdt file...
     if (!index->starkd) {
         index->starkd = startree_open_fits(index->indexfn, index->fits);
@@ -393,6 +395,13 @@ void index_unload(index_t* index) {
         quadfile_close(index->quads);
         index->quads = NULL;
     }
+
+    if (index->fits)
+    {
+        int status = 0;
+        fits_close_file(index->fits, &status);
+        index->fits = NULL;
+    }
 }
 
 void index_close(index_t* index) {
@@ -402,12 +411,6 @@ void index_close(index_t* index) {
     free(index->cutband);
     index->indexname = index->indexfn = NULL;
     index_unload(index);
-    if (index->fits)
-    {
-        int status = 0;
-        fits_close_file(index->fits, &status);
-    }
-    index->fits = NULL;
 }
 
 void index_free(index_t* index) {
