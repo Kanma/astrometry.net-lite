@@ -11,3 +11,141 @@ index 28667c1..4c8e7ff 100755
  
  # Suppress warning about WIN32 no longer being defined on Cygwin:
  SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
+diff --git a/cfileio.c b/cfileio.c
+index d36b4f5..d4a9f02 100644
+--- a/cfileio.c
++++ b/cfileio.c
+@@ -4,6 +4,10 @@
+ /*  Astrophysic Science Archive Research Center (HEASARC) at the NASA      */
+ /*  Goddard Space Flight Center.                                           */
+ 
++#ifdef _WIN32
++# include <windows.h>
++#endif
++
+ #include <string.h>
+ #include <stdlib.h>
+ #include <math.h>
+@@ -58,9 +62,22 @@ static int standardize_path(char *fullpath, int *status);
+ int comma2semicolon(char *string);
+ 
+ #ifdef _REENTRANT
+-
++#ifndef _WIN32
+ pthread_mutex_t Fitsio_InitLock = PTHREAD_MUTEX_INITIALIZER;
++#else
++HANDLE Fitsio_InitLock = INVALID_HANDLE_VALUE;
++
++void FFLOCK1(void* lock)
++{
++    WaitForSingleObject(lock, INFINITE);
++}
++
++void FFUNLOCK1(void* lock)
++{
++    ReleaseMutex(lock);
++}
+ 
++#endif
+ #endif
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -72,6 +89,7 @@ int fitsio_init_lock(void)
+ 
+   static int need_to_init = 1;
+ 
++#ifndef _WIN32
+   pthread_mutexattr_t mutex_init;
+ 
+   FFLOCK1(Fitsio_InitLock);
+@@ -108,6 +126,18 @@ int fitsio_init_lock(void)
+   }
+ 
+   FFUNLOCK1(Fitsio_InitLock);
++#else
++  Fitsio_InitLock = CreateMutex(NULL, FALSE, "Fitsio_InitLock");
++
++  DWORD dwWaitResult = WaitForSingleObject(Fitsio_InitLock, INFINITE);
++
++  if (need_to_init) {
++      Fitsio_Lock = CreateMutex(NULL, FALSE, NULL);
++      need_to_init = 0;
++  }
++
++  ReleaseMutex(Fitsio_InitLock);
++#endif
+ 
+ #endif
+ 
+diff --git a/fitscore.c b/fitscore.c
+index 383c52a..20a8907 100644
+--- a/fitscore.c
++++ b/fitscore.c
+@@ -56,12 +56,15 @@ SERVICES PROVIDED HEREUNDER."
+ #define PutMark    6 /* add a marker to the stack */
+ 
+ #ifdef _REENTRANT
++#ifndef _WIN32
+ /*
+     Fitsio_Lock and Fitsio_Pthread_Status are declared in fitsio2.h. 
+ */
+ pthread_mutex_t Fitsio_Lock;
+ int Fitsio_Pthread_Status = 0;
+-
++#else
++void* Fitsio_Lock;
++#endif
+ #endif
+ 
+ int STREAM_DRIVER = 0;
+diff --git a/fitsio2.h b/fitsio2.h
+index d2369cf..19ca6d3 100644
+--- a/fitsio2.h
++++ b/fitsio2.h
+@@ -1,6 +1,6 @@
+ #ifndef _FITSIO2_H
+ #define _FITSIO2_H
+- 
++
+ #include "fitsio.h"
+ 
+ /* 
+@@ -17,16 +17,28 @@
+ */
+ 
+ #ifdef _REENTRANT
+-#include <pthread.h>
+-/*  #include <assert.h>  not needed any more */
+-extern pthread_mutex_t Fitsio_Lock;
+-extern int Fitsio_Pthread_Status;
+-
+-#define FFLOCK1(lockname)   (Fitsio_Pthread_Status = pthread_mutex_lock(&lockname))
+-#define FFUNLOCK1(lockname) (Fitsio_Pthread_Status = pthread_mutex_unlock(&lockname))
+-#define FFLOCK   FFLOCK1(Fitsio_Lock)
+-#define FFUNLOCK FFUNLOCK1(Fitsio_Lock)
+-#define ffstrtok(str, tok, save) strtok_r(str, tok, save)
++
++#ifndef _WIN32
++    #include <pthread.h>
++    /*  #include <assert.h>  not needed any more */
++    extern pthread_mutex_t Fitsio_Lock;
++    extern int Fitsio_Pthread_Status;
++
++    #define FFLOCK1(lockname)   (Fitsio_Pthread_Status = pthread_mutex_lock(&lockname))
++    #define FFUNLOCK1(lockname) (Fitsio_Pthread_Status = pthread_mutex_unlock(&lockname))
++    #define FFLOCK   FFLOCK1(Fitsio_Lock)
++    #define FFUNLOCK FFUNLOCK1(Fitsio_Lock)
++    #define ffstrtok(str, tok, save) strtok_r(str, tok, save)
++#else
++    extern void* Fitsio_Lock;
++
++    void FFLOCK1(void* lock);
++    void FFUNLOCK1(void* lock);
++
++    #define FFLOCK    FFLOCK1(Fitsio_Lock);
++    #define FFUNLOCK  FFUNLOCK1(Fitsio_Lock);
++    #define ffstrtok(str, tok, save) strtok(str, tok)
++#endif
+ 
+ #else
+ #define FFLOCK
