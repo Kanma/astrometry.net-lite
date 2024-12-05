@@ -12,9 +12,9 @@
 #include "astrometry/fits_io.h"
 
 
-int kdtree_fits_contains_tree(const fits_io_t* io, const char* treename);
+int kdtree_fits_contains_tree(const fits_file_t* io, const char* treename);
 
-kdtree_t* kdtree_fits_read_tree(fits_io_t* io, const char* treename, fits_hdu_t** p_hdr);
+kdtree_t* kdtree_fits_read_tree(fits_file_t* io, const char* treename, fits_hdu_t** p_hdr);
 
 int kdtree_fits_close(kdtree_t* io);
 

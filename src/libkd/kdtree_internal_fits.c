@@ -21,7 +21,7 @@ static char* get_table_name(const char* treename, const char* tabname) {
     return rtn;
 }
 
-int MANGLE(kdtree_read_fits)(fits_io_t* io, kdtree_t* kd) {
+int MANGLE(kdtree_read_fits)(fits_file_t* io, kdtree_t* kd) {
     char* tablename;
 
     // kd->lr

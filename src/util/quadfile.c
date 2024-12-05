@@ -16,7 +16,7 @@
 
 #define CHUNK_QUADS 0
 
-static quadfile_t* new_quadfile(const char* fn, fitsfile* fits) {
+static quadfile_t* new_quadfile(const char* fn, fits_file_t* fits) {
     quadfile_t* qf;
     qf = calloc(1, sizeof(quadfile_t));
     if (!qf) {
@@ -26,12 +26,7 @@ static quadfile_t* new_quadfile(const char* fn, fitsfile* fits) {
     qf->healpix = -1;
     qf->hpnside = 1;
 
-    qf->io = fits_open_fits(fn, fits);
-    if (!qf->io) {
-        ERROR("Failed to create fitsbin");
-        return NULL;
-    }
-
+    qf->io = fits;
 
     qf->dimquads = 4;
     qf->numquads = -1;
@@ -147,7 +142,7 @@ static quadfile_t* my_open(const char* fn, fitsfile* fits) {
 }
 
 char* quadfile_get_filename(const quadfile_t* qf) {
-    return qf->io->filename;
+    return qf->io->fits->Fptr->filename;
 }
 
 quadfile_t* quadfile_open_fits(const char* filename, fitsfile* fits) {
@@ -155,10 +150,8 @@ quadfile_t* quadfile_open_fits(const char* filename, fitsfile* fits) {
 }
 
 int quadfile_close(quadfile_t* qf) {
-    int rtn;
+    int rtn = 0;
     if (!qf) return 0;
-    rtn = fits_io_close(qf->io);
-    free(qf->quadarray);
     free(qf);
     return rtn;
 }

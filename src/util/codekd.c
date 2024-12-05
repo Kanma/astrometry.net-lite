@@ -20,32 +20,22 @@ static codetree_t* codetree_alloc() {
     return s;
 }
 
-codetree_t* codetree_open_fits(const char* filename, fitsfile* fits) {
+codetree_t* codetree_open_fits(const char* filename, fits_file_t* fits) {
     codetree_t* s;
-    fits_io_t* io;
     char* treename = CODETREE_NAME;
 
     s = codetree_alloc();
     if (!s)
         return s;
 
-    io = fits_open_fits(filename, fits);
-    if (!io) {
-        ERROR("Failed to open FITS file");
-        goto bailout;
-    }
-
-    if (!kdtree_fits_contains_tree(io, treename))
+    if (!kdtree_fits_contains_tree(fits, treename))
         treename = NULL;
 
-    s->tree = kdtree_fits_read_tree(io, treename, &s->header);
+    s->tree = kdtree_fits_read_tree(fits, treename, &s->header);
     if (!s->tree) {
         ERROR("Failed to read code kdtree from file %s\n", filename);
         goto bailout;
     }
-
-    // kdtree_fits_t is a typedef of fitsbin_t
-    fits_io_close(io);
 
     return s;
  bailout:

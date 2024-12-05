@@ -256,8 +256,6 @@ struct kdtree {
     // For i/o: the name of this tree in the file.
     char* name;
 
-    void* io;
-
     struct kdtree_funcs fun;
 };
 

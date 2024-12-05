@@ -20,7 +20,7 @@ static log_t g_logger;
 
 static void* logts_init_key(void* user) {
     log_t* l = malloc(sizeof(log_t));
-    if (user)
+    if (user && l)
         memcpy(l, user, sizeof(log_t));
     return l;
 }

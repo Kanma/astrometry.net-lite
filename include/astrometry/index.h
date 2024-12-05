@@ -34,7 +34,7 @@ typedef struct {
     startree_t* starkd;
 
     // FITS file access
-    fitsfile* fits;
+    fits_file_t* fits;
 
     // filename
     char* indexfn;

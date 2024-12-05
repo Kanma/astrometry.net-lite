@@ -31,7 +31,7 @@ typedef struct {
     uint8_t* sweep;
 } startree_t;
 
-startree_t* startree_open_fits(const char* filename, fitsfile* fits);
+startree_t* startree_open_fits(const char* filename, fits_file_t* fits);
 
 /**
  Searches for stars within a radius of a point.

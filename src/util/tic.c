@@ -59,9 +59,16 @@ int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss) {
     return 0;
 #else
     clock_t elapsed = clock();
-    *p_usertime = (double)(elapsed) / CLOCKS_PER_SEC;
-    *p_systime = 0.0;
-    *p_maxrss = 0.0;
+
+    if (p_usertime)
+        *p_usertime = (double)(elapsed) / CLOCKS_PER_SEC;
+
+    if (p_systime)
+        *p_systime = 0.0;
+
+    if (p_maxrss)
+        *p_maxrss = 0.0;
+
     return 0;
 #endif
 }

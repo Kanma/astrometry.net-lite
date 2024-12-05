@@ -341,10 +341,9 @@ index_t* index_load(const char* indexname, int flags, index_t* dest) {
 int index_reload(index_t* index) {
     if (index->fits == NULL)
     {
-        int status = 0;
+        index->fits = fits_open(index->indexfn);
 
-        fits_open_file(&index->fits, index->indexfn, READONLY, &status);
-        if (status != 0) {
+        if (index->fits == NULL) {
             ERROR("Failed to open FITS file %s", index->indexfn);
             goto bailout;
         }
@@ -395,22 +394,24 @@ void index_unload(index_t* index) {
         quadfile_close(index->quads);
         index->quads = NULL;
     }
-
-    if (index->fits)
-    {
-        int status = 0;
-        fits_close_file(index->fits, &status);
-        index->fits = NULL;
-    }
 }
 
 void index_close(index_t* index) {
     if (!index) return;
+
     free(index->indexname);
     free(index->indexfn);
     free(index->cutband);
+
     index->indexname = index->indexfn = NULL;
+
     index_unload(index);
+
+    if (index->fits)
+    {
+        fits_close(index->fits);
+        index->fits = NULL;
+    }
 }
 
 void index_free(index_t* index) {

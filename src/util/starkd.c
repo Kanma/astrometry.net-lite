@@ -108,28 +108,20 @@ fits_hdu_t* startree_header(const startree_t* s) {
     return s->header;
 }
 
-startree_t* startree_open_fits(const char* filename, fitsfile* fits) {
+startree_t* startree_open_fits(const char* filename, fits_file_t* fits) {
     startree_t* s;
     bl* chunks;
     int i;
-    fits_io_t* io;
     char* treename = STARTREE_NAME;
 
     s = startree_alloc();
     if (!s)
         return NULL;
 
-    io = fits_open_fits(filename, fits);
-
-    if (!io) {
-        ERROR("Failed to open FITS file \"%s\"", filename);
-        goto bailout;
-    }
-
-    if (!kdtree_fits_contains_tree(io, treename))
+    if (!kdtree_fits_contains_tree(fits, treename))
         treename = NULL;
 
-    s->tree = kdtree_fits_read_tree(io, treename, &s->header);
+    s->tree = kdtree_fits_read_tree(fits, treename, &s->header);
     if (!s->tree) {
         ERROR("Failed to read kdtree from file \"%s\"", filename);
         goto bailout;
@@ -140,19 +132,14 @@ startree_t* startree_open_fits(const char* filename, fitsfile* fits) {
     if (s->tree->ndim != 3) {
         logverb("File %s contains a kd-tree with dim %i (not 3), named %s\n",
                 filename, s->tree->ndim, treename);
-        s->tree->io = NULL;
         goto bailout;
     }
 
-    fits_read_chunk(io, "sweep", sizeof(uint8_t), &s->tree->ndata, &s->sweep);
-
-    // kdtree_fits_t is a typedef of fitsbin_t
-    fits_io_close(io);
+    fits_read_chunk(fits, "sweep", sizeof(uint8_t), &s->tree->ndata, &s->sweep);
 
     return s;
 
  bailout:
-    fits_io_close(io);
     startree_close(s);
     return NULL;
 }
@@ -172,8 +159,6 @@ int startree_close(startree_t* s) {
         free(s->header);
     if (s->tree)
         kdtree_fits_close(s->tree);
-    if (s->sweep)
-        free(s->sweep);
     free(s);
     return 0;
 }

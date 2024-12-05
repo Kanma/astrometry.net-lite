@@ -55,14 +55,9 @@ Plate solving...
     Pixel size: 1.17377 arcsec
 ```
 
-Note that:
-  * all the relevant index files are loaded in memory at once, which can requires A LOT of
-    memory (ie. 25GB for the example image). You can load them in smaller batches, and call
-    the ```solver_run()``` function several times to reduce the memory requirements (but it
-    is much slower).
-  * the variables ```minWidth``` and ```maxWidth``` are hard-coded to values suitable for
-    the example image, you might need to modify them to correspond to the parameters of your
-    image. They are respectively the minimum and maximum sizes (in degrees) of the image.
+Note that the variables ```minWidth``` and ```maxWidth``` are hard-coded to values suitable
+for the example image, you might need to modify them to correspond to the parameters of your
+image. They are respectively the minimum and maximum sizes (in degrees) of the image.
 
 
 ## Dependencies

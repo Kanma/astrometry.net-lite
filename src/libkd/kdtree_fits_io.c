@@ -76,9 +76,9 @@ static int is_tree_header_ok(fits_hdu_t* header, int* ndim, int* ndata,
 }
 
 // declarations
-KD_DECLARE(kdtree_read_fits, int, (fits_io_t* io, kdtree_t* kd));
+KD_DECLARE(kdtree_read_fits, int, (fits_file_t* io, kdtree_t* kd));
 
-static fits_hdu_t* find_tree(const char* treename, const fits_io_t* io,
+static fits_hdu_t* find_tree(const char* treename, const fits_file_t* io,
                                int* ndim, int* ndata, int* nnodes,
                                unsigned int* tt, char** realname) {
     fits_hdu_t* header;
@@ -135,7 +135,7 @@ static fits_hdu_t* find_tree(const char* treename, const fits_io_t* io,
     return NULL;
 }
 
-int kdtree_fits_contains_tree(const fits_io_t* io, const char* treename) {
+int kdtree_fits_contains_tree(const fits_file_t* io, const char* treename) {
     int ndim, ndata, nnodes;
     unsigned int tt;
 
@@ -151,7 +151,7 @@ int kdtree_fits_contains_tree(const fits_io_t* io, const char* treename) {
     return rtn;
 }
 
-kdtree_t* kdtree_fits_read_tree(fits_io_t* io, const char* treename,
+kdtree_t* kdtree_fits_read_tree(fits_file_t* io, const char* treename,
                                 fits_hdu_t** p_hdr) {
     int ndim, ndata, nnodes;
     unsigned int tt;
@@ -170,9 +170,9 @@ kdtree_t* kdtree_fits_read_tree(fits_io_t* io, const char* treename,
     if (!header) {
         // Not found.
         if (treename)
-            ERROR("Kdtree header for a tree named \"%s\" was not found in file %s", treename, io->filename);
+            ERROR("Kdtree header for a tree named \"%s\" was not found in file %s", treename, io->fits->Fptr->filename);
         else
-            ERROR("Kdtree header was not found in file %s", io->filename);
+            ERROR("Kdtree header was not found in file %s", io->fits->Fptr->filename);
 
         FREE(kd);
         return NULL;
@@ -204,21 +204,11 @@ kdtree_t* kdtree_fits_read_tree(fits_io_t* io, const char* treename,
 
     kdtree_update_funcs(kd);
 
-    kd->io = io;
-
     return kd;
 }
 
 int kdtree_fits_close(kdtree_t* kd) {
     if (!kd) return 0;
-
-    FREE(kd->lr);
-    FREE(kd->perm);
-    FREE(kd->bb.any);
-    FREE(kd->split.any);
-    FREE(kd->splitdim);
-    FREE(kd->data.any);
-    FREE(kd->minval);
     FREE(kd->name);
     FREE(kd);
     return 0;

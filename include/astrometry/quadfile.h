@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include "fits_io.h"
 
-//#include "astrometry/fitsbin.h"
-
 typedef struct {
     unsigned int numquads;
     unsigned int numstars;
@@ -27,7 +25,7 @@ typedef struct {
     // Nside of the healpixelization
     int hpnside;
 
-    fits_io_t* io;
+    fits_file_t* io;
     // when reading:
     uint32_t* quadarray;
 } quadfile_t;
