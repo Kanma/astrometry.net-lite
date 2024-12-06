@@ -10,10 +10,12 @@ jobs:
   build:
     name: Build
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -25,23 +27,27 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        echo "example-binary=${{ matrix.os == 'windows-latest' && 'bin/Release/example.exe' || 'bin/example' }}" >> "$GITHUB_OUTPUT"
 
     - name: Configure CMake
+      shell: bash
       run: |
-        cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+        cmake -B '${{ steps.strings.outputs.build-output-dir }}' \
           -DCMAKE_BUILD_TYPE=Release \
-          -S ${{ github.workspace }}
+          -S '${{ github.workspace }}'
 
     - name: Build
+      shell: bash
       run: |
-        cmake --build ${{ steps.strings.outputs.build-output-dir }}
+        cmake --build '${{ steps.strings.outputs.build-output-dir }}' --config Release
 
     - name: Download index files
-      run: |
-        mkdir indexes
-        cd indexes
-        wget http://data.astrometry.net/4100/index-4109.fits
+      uses: suisei-cn/actions-download-file@818d6b7dc8fe73f2f924b6241f2b1134ca1377d9 # 1.6.0
+      with:
+        url: "http://data.astrometry.net/4100/index-4109.fits"
+        target: indexes/
 
     - name: Run example application
+      shell: bash
       run: |
-        ${{ steps.strings.outputs.build-output-dir }}/bin/example example/starfield.jpg indexes
+        '${{ steps.strings.outputs.build-output-dir }}/${{ steps.strings.outputs.example-binary }}' example/starfield.jpg indexes

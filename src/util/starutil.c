@@ -181,7 +181,7 @@ double dms2dec(int sgn, int d, int m, double s) {
 }
 
 // RA in degrees to H:M:S
-inline void ra2hms(double ra, int* h, int* m, double* s) {
+void ra2hms(double ra, int* h, int* m, double* s) {
     double rem;
     ra = fmod(ra, 360.0);
     if (ra < 0.0)
