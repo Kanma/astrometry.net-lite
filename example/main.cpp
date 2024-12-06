@@ -351,5 +351,8 @@ int main(int argc, char** argv)
     solver_free(solver);
     simplexy_free_contents(&params);
 
+    for (index_t* index : indexes)
+        index_free(index);
+
     return 0;
 }

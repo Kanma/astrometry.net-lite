@@ -158,7 +158,7 @@ int fits_check_endian(const fits_hdu_t* header) {
 int fits_close(fits_file_t* io) {
 #ifndef _WIN32
     if (io->fd >= 0)
-        fclose(io->fd);
+        close(io->fd);
 #else
     if (io->mapping != INVALID_HANDLE_VALUE)
         CloseHandle(io->mapping);
