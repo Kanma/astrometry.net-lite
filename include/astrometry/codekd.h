@@ -18,8 +18,10 @@ typedef struct {
     fits_hdu_t* header;
 } codetree_t;
 
-codetree_t* codetree_open_fits(const char* filename, fits_file_t* fits);
+codetree_t* codetree_open_fits(fits_file_t* fits);
 
 int codetree_close(codetree_t* s);
+
+void parse_codetree_params(fitsfile* fits, fits_hdu_t* header);
 
 #endif

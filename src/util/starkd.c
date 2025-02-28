@@ -108,7 +108,7 @@ fits_hdu_t* startree_header(const startree_t* s) {
     return s->header;
 }
 
-startree_t* startree_open_fits(const char* filename, fits_file_t* fits) {
+startree_t* startree_open_fits(fits_file_t* fits) {
     startree_t* s;
     bl* chunks;
     int i;
@@ -118,12 +118,12 @@ startree_t* startree_open_fits(const char* filename, fits_file_t* fits) {
     if (!s)
         return NULL;
 
-    if (!kdtree_fits_contains_tree(fits, treename))
+    if (!kdtree_fits_contains_tree(fits, treename, NULL))
         treename = NULL;
 
     s->tree = kdtree_fits_read_tree(fits, treename, &s->header);
     if (!s->tree) {
-        ERROR("Failed to read kdtree from file \"%s\"", filename);
+        ERROR("Failed to read kdtree from file \"%s\"", fits->filename);
         goto bailout;
     }
 
@@ -131,11 +131,11 @@ startree_t* startree_open_fits(const char* filename, fits_file_t* fits) {
     // (because code trees can be confused...)
     if (s->tree->ndim != 3) {
         logverb("File %s contains a kd-tree with dim %i (not 3), named %s\n",
-                filename, s->tree->ndim, treename);
+                fits->filename, s->tree->ndim, treename);
         goto bailout;
     }
 
-    fits_read_chunk(fits, "sweep", sizeof(uint8_t), &s->tree->ndata, &s->sweep);
+    fits_read_chunk(fits, "sweep", sizeof(uint8_t), &s->tree->ndata, &s->sweep, 1);
 
     return s;
 
@@ -155,8 +155,6 @@ int startree_close(startree_t* s) {
     if (!s) return 0;
     if (s->inverse_perm)
         free(s->inverse_perm);
-    if (s->header)
-        free(s->header);
     if (s->tree)
         kdtree_fits_close(s->tree);
     free(s);
@@ -210,93 +208,66 @@ void startree_compute_inverse_perm(startree_t* s) {
 #endif
 }
 
-int startree_get_cut_nside(const startree_t* s) {
+void parse_startree_params(fitsfile* fits, fits_hdu_t* header) {
     int status = 0;
 
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
+    fits_movabs_hdu(fits, header->extension, NULL, &status);
     if (status != 0)
-        return -1;
+        return;
 
-    int res = -1;
-    fits_read_key(s->header->fits, TINT, "CUTNSIDE", &res, NULL, &status);
+    fits_read_key(fits, TINT, "CUTNSIDE", &header->fits->stars.cut_nside, NULL, &status);
 
-    return res;
-}
+    status = 0;
+    fits_read_key(fits, TINT, "CUTNSWEP", &header->fits->stars.cut_nsweeps, NULL, &status);
 
-int startree_get_cut_nsweeps(const startree_t* s) {
-    int status = 0;
+    status = 0;
+    fits_read_key(fits, TDOUBLE, "CUTDEDUP", &header->fits->stars.cut_dedup, NULL, &status);
 
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
-    if (status != 0)
-        return -1;
+    status = 0;
 
-    int res = -1;
-    fits_read_key(s->header->fits, TINT, "CUTNSWEP", &res, NULL, &status);
-
-    return res;
-}
-
-double startree_get_cut_dedup(const startree_t* s) {
-    int status = 0;
-
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
-    if (status != 0)
-        return -1;
-
-    double res = 0.0;
-    fits_read_key(s->header->fits, TDOUBLE, "CUTDEDUP", &res, NULL, &status);
-
-    return res;
-}
-
-char* startree_get_cut_band(const startree_t* s) {
     static char* bands[] = { "R", "B", "J" };
     int i;
-
-    int status = 0;
-
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
-    if (status != 0)
-        return NULL;
-
     char str[FITS_LINESZ + 1];
-    fits_read_key(s->header->fits, TSTRING, "CUTBAND", str, NULL, &status);
-    if (status != 0)
-        return NULL;
 
-    for (i=0; i<sizeof(bands) / sizeof(char*); i++) {
-        if (strstr(str, bands[i]) == str) {
-            return bands[i];
+    fits_read_key(fits, TSTRING, "CUTBAND", str, NULL, &status);
+
+    if (status == 0) {
+        for (i=0; i<sizeof(bands) / sizeof(char*); i++) {
+            if (strstr(str, bands[i]) == str) {
+                header->fits->stars.cut_band = bands[i];
+            }
         }
     }
 
-    return NULL;
+    status = 0;
+    fits_read_key(fits, TINT, "CUTMARG", &header->fits->stars.cut_margin, NULL, &status);
+
+    status = 0;
+    fits_read_key(fits, TDOUBLE, "JITTER", &header->fits->stars.jitter, NULL, &status);
+}
+
+int startree_get_cut_nside(const startree_t* s) {
+    return s->header->fits->stars.cut_nside;
+}
+
+int startree_get_cut_nsweeps(const startree_t* s) {
+    return s->header->fits->stars.cut_nsweeps;
+}
+
+double startree_get_cut_dedup(const startree_t* s) {
+    return s->header->fits->stars.cut_dedup;
+}
+
+char* startree_get_cut_band(const startree_t* s) {
+    return s->header->fits->stars.cut_band;
 }
 
 int startree_get_cut_margin(const startree_t* s) {
-    int status = 0;
-
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
-    if (status != 0)
-        return -1;
-
-    int res = -1;
-    fits_read_key(s->header->fits, TINT, "CUTMARG", &res, NULL, &status);
-
-    return res;
+    return s->header->fits->stars.cut_margin;
 }
 
 double startree_get_jitter(const startree_t* s) {
-    int status = 0;
-
-    fits_movabs_hdu(s->header->fits, s->header->extension, NULL, &status);
-    if (status != 0)
-        return -1;
-
-    double res = 0.0;
-    fits_read_key(s->header->fits, TDOUBLE, "JITTER", &res, NULL, &status);
-
-    return res;
+    return s->header->fits->stars.jitter;
 }
 
 int startree_get_sweep(const startree_t* s, int ind) {

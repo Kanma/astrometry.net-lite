@@ -16,55 +16,66 @@
 
 #define CHUNK_QUADS 0
 
-static quadfile_t* new_quadfile(const char* fn, fits_file_t* fits) {
+
+void quadfile_parse(fitsfile* fits, fits_file_t* io) {
+    io->quads.dimquads = 4;
+    io->quads.numquads = -1;
+    io->quads.numstars = -1;
+    io->quads.index_scale_upper = -1.0;
+    io->quads.index_scale_lower = -1.0;
+    io->quads.indexid = 0;
+    io->quads.healpix = -1;
+    io->quads.hpnside = 1;
+
+    int status = 0;
+    fits_movabs_hdu(fits, 1, NULL, &status);
+
+    if (status == 0)
+    {
+        fits_read_key(fits, TINT, "DIMQUADS", &io->quads.dimquads, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TINT, "NQUADS", &io->quads.numquads, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TINT, "NSTARS", &io->quads.numstars, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TDOUBLE, "SCALE_U", &io->quads.index_scale_upper, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TDOUBLE, "SCALE_L", &io->quads.index_scale_lower, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TINT, "INDEXID", &io->quads.indexid, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TINT, "HEALPIX", &io->quads.healpix, NULL, &status);
+
+        status = 0;
+        fits_read_key(fits, TINT, "HPNSIDE", &io->quads.hpnside, NULL, &status);
+    }
+}
+
+
+static quadfile_t* new_quadfile(fits_file_t* io) {
     quadfile_t* qf;
     qf = calloc(1, sizeof(quadfile_t));
     if (!qf) {
         SYSERROR("Couldn't malloc a quadfile struct");
         return NULL;
     }
-    qf->healpix = -1;
-    qf->hpnside = 1;
 
-    qf->io = fits;
+    qf->io = io;
 
-    qf->dimquads = 4;
-    qf->numquads = -1;
-    qf->numstars = -1;
-    qf->index_scale_upper = -1.0;
-    qf->index_scale_lower = -1.0;
-    qf->indexid = 0;
-    qf->healpix = -1;
-    qf->hpnside = 1;
-
-    int status = 0;
-    fits_movabs_hdu(qf->io->fits, 1, NULL, &status);
-
-    if (status == 0)
-    {
-        fits_read_key(qf->io->fits, TINT, "DIMQUADS", &qf->dimquads, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TINT, "NQUADS", &qf->numquads, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TINT, "NSTARS", &qf->numstars, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TDOUBLE, "SCALE_U", &qf->index_scale_upper, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TDOUBLE, "SCALE_L", &qf->index_scale_lower, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TINT, "INDEXID", &qf->indexid, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TINT, "HEALPIX", &qf->healpix, NULL, &status);
-
-        status = 0;
-        fits_read_key(qf->io->fits, TINT, "HPNSIDE", &qf->hpnside, NULL, &status);
-    }
+    qf->dimquads = io->quads.dimquads;
+    qf->numquads = io->quads.numquads;
+    qf->numstars = io->quads.numstars;
+    qf->index_scale_upper = io->quads.index_scale_upper;
+    qf->index_scale_lower = io->quads.index_scale_lower;
+    qf->indexid = io->quads.indexid;
+    qf->healpix = io->quads.healpix;
+    qf->hpnside = io->quads.hpnside;
 
     if ((qf->numquads == -1) || (qf->numstars == -1) ||
         (qf->index_scale_upper == -1.0) || (qf->index_scale_lower == -1.0)) {
@@ -75,11 +86,7 @@ static quadfile_t* new_quadfile(const char* fn, fits_file_t* fits) {
         }
     }
 
-    fits_hdu_t primheader;
-    primheader.fits = qf->io->fits;
-    primheader.extension = 1;
-
-    if (fits_check_endian(&primheader)) {
+    if (fits_check_endian(&io->hdus[0])) {
         ERROR("Quad file was written with the wrong endianness");
         {
             quadfile_close(qf);
@@ -124,14 +131,18 @@ fits_hdu_t* quadfile_get_header(const quadfile_t* qf) {
     return fits_get_primary_header(qf->io);
 }
 
-static quadfile_t* my_open(const char* fn, fitsfile* fits) {
+char* quadfile_get_filename(const quadfile_t* qf) {
+    return qf->io->filename;
+}
+
+quadfile_t* quadfile_open_fits(fits_file_t* io) {
     quadfile_t* qf = NULL;
  
-    qf = new_quadfile(fn, fits);
+    qf = new_quadfile(io);
     if (!qf)
         goto bailout;
 
-    fits_read_chunk(qf->io, "quads", qf->dimquads * sizeof(uint32_t), &qf->numquads, &qf->quadarray);
+    fits_read_chunk(io, "quads", qf->dimquads * sizeof(uint32_t), &qf->numquads, &qf->quadarray, 1);
 
     return qf;
 
@@ -139,14 +150,6 @@ static quadfile_t* my_open(const char* fn, fitsfile* fits) {
     if (qf)
         quadfile_close(qf);
     return NULL;
-}
-
-char* quadfile_get_filename(const quadfile_t* qf) {
-    return qf->io->fits->Fptr->filename;
-}
-
-quadfile_t* quadfile_open_fits(const char* filename, fitsfile* fits) {
-    return my_open(filename, fits);
 }
 
 int quadfile_close(quadfile_t* qf) {

@@ -7,12 +7,14 @@
 #define KDTREE_FITS_IO_H
 
 #include <stdio.h>
+#include <fitsio.h>
 
 #include "astrometry/kdtree.h"
 #include "astrometry/fits_io.h"
 
+void kdtree_parse(fitsfile* fits, fits_file_t* io);
 
-int kdtree_fits_contains_tree(const fits_file_t* io, const char* treename);
+int kdtree_fits_contains_tree(const fits_file_t* io, const char* treename, fits_hdu_t** p_hdr);
 
 kdtree_t* kdtree_fits_read_tree(fits_file_t* io, const char* treename, fits_hdu_t** p_hdr);
 

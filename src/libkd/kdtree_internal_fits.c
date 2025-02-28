@@ -26,40 +26,40 @@ int MANGLE(kdtree_read_fits)(fits_file_t* io, kdtree_t* kd) {
 
     // kd->lr
     tablename = get_table_name(kd->name, KD_STR_LR);
-    fits_read_chunk(io, tablename, sizeof(u32), &kd->nbottom, &kd->lr);
+    fits_read_chunk(io, tablename, sizeof(u32), &kd->nbottom, &kd->lr, 0);
     free(tablename);
 
     // kd->perm
     tablename = get_table_name(kd->name, KD_STR_PERM);
-    fits_read_chunk(io, tablename, sizeof(u32), &kd->ndata, &kd->perm);
+    fits_read_chunk(io, tablename, sizeof(u32), &kd->ndata, &kd->perm, 0);
     free(tablename);
 
     // kd->bb
     kd->n_bb = 0;
     tablename = get_table_name(kd->name, KD_STR_BB);
-    fits_read_chunk(io, tablename, sizeof(ttype) * kd->ndim * 2,  &kd->n_bb, &kd->bb.any);
+    fits_read_chunk(io, tablename, sizeof(ttype) * kd->ndim * 2,  &kd->n_bb, &kd->bb.any, 0);
     free(tablename);
 
     // kd->split
     tablename = get_table_name(kd->name, KD_STR_SPLIT);
-    fits_read_chunk(io, tablename, sizeof(ttype), &kd->ninterior, &kd->split.any);
+    fits_read_chunk(io, tablename, sizeof(ttype), &kd->ninterior, &kd->split.any, 0);
     free(tablename);
 
     // kd->splitdim
     tablename = get_table_name(kd->name, KD_STR_SPLITDIM);
-    fits_read_chunk(io, tablename, sizeof(u8), &kd->ninterior, &kd->splitdim);
+    fits_read_chunk(io, tablename, sizeof(u8), &kd->ninterior, &kd->splitdim, 0);
     free(tablename);
 
     // kd->data
     tablename = get_table_name(kd->name, KD_STR_DATA);
-    fits_read_chunk(io, tablename, sizeof(dtype) * kd->ndim, &kd->ndata, &kd->data.any);
+    fits_read_chunk(io, tablename, sizeof(dtype) * kd->ndim, &kd->ndata, &kd->data.any, 0);
     free(tablename);
 
     // kd->minval/kd->maxval/kd->scale
     double* r;
     int nb = (kd->ndim * 2 + 1);
     tablename = get_table_name(kd->name, KD_STR_RANGE);
-    if (fits_read_chunk(io, tablename, sizeof(double), &nb, &r) == 0) {
+    if (fits_read_chunk(io, tablename, sizeof(double), &nb, &r, 1) == 0) {
         kd->minval = r;
         kd->maxval = r + kd->ndim;
         kd->scale  = r[kd->ndim * 2];

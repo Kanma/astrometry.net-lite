@@ -256,26 +256,9 @@ static void set_meta(index_t* index) {
     // able to fill in values that are missing in old index files.
     get_cut_params(index);
 
-    index->circle = 0;
-    index->cx_less_than_dx = FALSE;
-    index->meanx_less_than_half = FALSE;
-
-    int status = 0;
-    fits_movabs_hdu(index->codekd->header->fits, index->codekd->header->extension, NULL, &status);
-
-    if (status == 0)
-    {
-        // check for CIRCLE field in ckdt header...
-        fits_read_key(index->codekd->header->fits, TBYTE, "CIRCLE", &index->circle, NULL, &status);
-
-        // New indexes are cooked such that cx < dx for all codes, but not
-        // all of the old ones are like this.
-        status = 0;
-        fits_read_key(index->codekd->header->fits, TBYTE, "CXDX", &index->cx_less_than_dx, NULL, &status);
-
-        status = 0;
-        fits_read_key(index->codekd->header->fits, TBYTE, "CXDXLT1", &index->meanx_less_than_half, NULL, &status);
-    }
+    index->circle = index->fits->code.circle;
+    index->cx_less_than_dx = index->fits->code.cx_less_than_dx;
+    index->meanx_less_than_half = index->fits->code.meanx_less_than_half;
 }
 
 int index_dimquads(index_t* indx) {
@@ -351,7 +334,7 @@ int index_reload(index_t* index) {
 
     // Read .skdt file...
     if (!index->starkd) {
-        index->starkd = startree_open_fits(index->indexfn, index->fits);
+        index->starkd = startree_open_fits(index->fits);
         if (!index->starkd) {
             ERROR("Failed to read star kdtree from file %s", index->indexfn);
             goto bailout;
@@ -360,7 +343,7 @@ int index_reload(index_t* index) {
 
     // Read .quad file...
     if (!index->quads) {
-        index->quads = quadfile_open_fits(index->indexfn, index->fits);
+        index->quads = quadfile_open_fits(index->fits);
         if (!index->quads) {
             ERROR("Failed to read quads from %s", index->indexfn);
             goto bailout;
@@ -369,7 +352,7 @@ int index_reload(index_t* index) {
 
     // Read .ckdt file...
     if (!index->codekd) {
-        index->codekd = codetree_open_fits(index->indexfn, index->fits);
+        index->codekd = codetree_open_fits(index->fits);
         if (!index->codekd) {
             ERROR("Failed to read code kdtree from file %s", index->indexfn);
             goto bailout;

@@ -30,7 +30,10 @@ typedef struct {
     uint32_t* quadarray;
 } quadfile_t;
 
-quadfile_t* quadfile_open_fits(const char* filename, fitsfile* fits);
+
+void quadfile_parse(fitsfile* fits, fits_file_t* io);
+
+quadfile_t* quadfile_open_fits(fits_file_t* io);
 
 char* quadfile_get_filename(const quadfile_t* qf);
 
