@@ -52,6 +52,7 @@ Loading the index files from '/path/to/indexes'...
     150 index files used
 Plate solving...
     282.654°, -12.9419°
+    Orientation: 109.161°
     Pixel size: 1.17377 arcsec
 ```
 

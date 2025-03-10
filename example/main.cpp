@@ -22,6 +22,7 @@ extern "C" {
     #include <astrometry/index.h>
     #include <astrometry/solver.h>
     #include <astrometry/permutedsort.h>
+    #include <astrometry/sip.h>
 }
 
 
@@ -340,6 +341,7 @@ int main(int argc, char** argv)
         xyzarr2radecdeg(solver->best_match.center, &ra, &dec);
 
         std::cout << "    " << ra << "°, " << dec << "°" << std::endl;
+        std::cout << "    Orientation: " << tan_get_orientation(&solver->best_match.wcstan) << "°" << std::endl;
         std::cout << "    Pixel size: " << solver->best_match.scale << " arcsec" << std::endl;
     }
     else
