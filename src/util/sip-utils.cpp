@@ -385,6 +385,10 @@ void sip_get_field_size(const sip_t* wcs,
     double ra1, dec1, ra2, dec2, ra3, dec3;
     double w, h;
 
+    static const char* units_arcseconds = "arcseconds";
+    static const char* units_arcminutes = "arcminutes";
+    static const char* units_degrees = "degrees";
+
     // measure width through the middle
     sip_pixelxy2radec(wcs, minx, midy, &ra1, &dec1);
     sip_pixelxy2radec(wcs, midx, midy, &ra2, &dec2);
@@ -399,15 +403,15 @@ void sip_get_field_size(const sip_t* wcs,
         arcsec_between_radecdeg(ra2, dec2, ra3, dec3);
 
     if (MIN(w, h) < 60.0) {
-        *units = "arcseconds";
+        *units = (char*) units_arcseconds;
         *pw = w;
         *ph = h;
     } else if (MIN(w, h) < 3600.0) {
-        *units = "arcminutes";
+        *units = (char*) units_arcminutes;
         *pw = w / 60.0;
         *ph = h / 60.0;
     } else {
-        *units = "degrees";
+        *units = (char*) units_degrees;
         *pw = w / 3600.0;
         *ph = h / 3600.0;
     }
