@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 28667c1..4c8e7ff 100755
+index 28667c1..501e88a 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -9,7 +9,7 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -11,6 +11,17 @@ index 28667c1..4c8e7ff 100755
  
  # Suppress warning about WIN32 no longer being defined on Cygwin:
  SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
+@@ -128,8 +128,8 @@ IF(MSVC OR BORLAND)
+     # Define
+     ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
+     # Need an empty unistd.h in MSVC for flex-generated eval_l.c:
+-    FILE(WRITE ${CMAKE_SOURCE_DIR}/unistd.h "")
+-    INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
++    FILE(WRITE ${CMAKE_BINARY_DIR}/generated/unistd.h "")
++    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/generated)
+ ENDIF()
+ 
+ IF(BORLAND)
 diff --git a/cfileio.c b/cfileio.c
 index d36b4f5..d4a9f02 100644
 --- a/cfileio.c
